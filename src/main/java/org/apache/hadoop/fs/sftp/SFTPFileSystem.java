@@ -138,7 +138,7 @@ public class SFTPFileSystem extends FileSystem {
 			final String password = conf.get(PARAM_PASSWORD);
 			String knownHostsFile = conf.get(PARAM_KNOWNHOSTS, DEFAULT_KNOWNHOSTS_FILE);
 
-			final PortAwareKnownHosts knownHosts = new PortAwareKnownHosts(new File(knownHostsFile));
+			// final PortAwareKnownHosts knownHosts = new PortAwareKnownHosts(new File(knownHostsFile));
 
 			connection = new Connection(host, port);
 			connection.connect(new ServerHostKeyVerifier() {
@@ -146,7 +146,7 @@ public class SFTPFileSystem extends FileSystem {
 				public boolean verifyServerHostKey(String hostname, int port, String serverHostKeyAlgorithm, byte[] serverHostKey) throws Exception {
 					// if (knownHosts.verifyHostkey(hostname, port, serverHostKeyAlgorithm, serverHostKey) == KnownHosts.HOSTKEY_IS_OK)
 					return true;
-					//throw new IOException("Couldn't verify host key for " + hostname);
+					// throw new IOException("Couldn't verify host key for " + hostname);
 				}
 			});
 
