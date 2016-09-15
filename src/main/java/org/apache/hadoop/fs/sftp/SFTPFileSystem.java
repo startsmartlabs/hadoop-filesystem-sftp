@@ -3,6 +3,8 @@ package org.apache.hadoop.fs.sftp;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -136,15 +138,15 @@ public class SFTPFileSystem extends FileSystem {
 			final String password = conf.get(PARAM_PASSWORD);
 			String knownHostsFile = conf.get(PARAM_KNOWNHOSTS, DEFAULT_KNOWNHOSTS_FILE);
 
-			final PortAwareKnownHosts knownHosts = new PortAwareKnownHosts(new File(knownHostsFile));
+			// final PortAwareKnownHosts knownHosts = new PortAwareKnownHosts(new File(knownHostsFile));
 
 			connection = new Connection(host, port);
 			connection.connect(new ServerHostKeyVerifier() {
 				@Override
 				public boolean verifyServerHostKey(String hostname, int port, String serverHostKeyAlgorithm, byte[] serverHostKey) throws Exception {
-					if (knownHosts.verifyHostkey(hostname, port, serverHostKeyAlgorithm, serverHostKey) == KnownHosts.HOSTKEY_IS_OK)
-						return true;
-					throw new IOException("Couldn't verify host key for " + hostname);
+					// if (knownHosts.verifyHostkey(hostname, port, serverHostKeyAlgorithm, serverHostKey) == KnownHosts.HOSTKEY_IS_OK)
+					return true;
+					// throw new IOException("Couldn't verify host key for " + hostname);
 				}
 			});
 
@@ -168,7 +170,21 @@ public class SFTPFileSystem extends FileSystem {
 					throw new IOException("Server does not support any of our supported password authentication methods");
 				}
 			} else {
-				connection.authenticateWithPublicKey(user, new File(key), keyPassword);
+				if (key.startsWith("hdfs://")) {
+					Path path = new Path(key);
+					FileSystem fs = path.getFileSystem(new Configuration());
+					BufferedReader br = new BufferedReader(new InputStreamReader(fs.open(path)));
+					String line;
+					String key_file = "";
+					line=br.readLine();
+					while (line != null){
+						key_file += line + "\n";
+						line=br.readLine();
+					}
+					connection.authenticateWithPublicKey(user, key_file.toCharArray(), keyPassword);
+				} else {
+					connection.authenticateWithPublicKey(user, new File(key), keyPassword);
+				}
 			}
 
 			client = new SFTPv3Client(connection);
