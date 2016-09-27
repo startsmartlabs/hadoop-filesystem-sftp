@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.codec.binary.Base64;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BufferedFSInputStream;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -181,6 +183,9 @@ public class SFTPFileSystem extends FileSystem {
 						key_file += line + "\n";
 						line=br.readLine();
 					}
+					connection.authenticateWithPublicKey(user, key_file.toCharArray(), keyPassword);
+				} else if (key.startsWith("BASE64:")) {
+					String key_file = new String(Base64.decodeBase64(key.substring(7)));
 					connection.authenticateWithPublicKey(user, key_file.toCharArray(), keyPassword);
 				} else {
 					connection.authenticateWithPublicKey(user, new File(key), keyPassword);
